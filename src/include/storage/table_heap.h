@@ -71,6 +71,7 @@ class TableHeap {
    */
   bool GetTuple(Row *row, Txn *txn);
 
+
   void FreeTableHeap() {
     auto next_page_id = first_page_id_;
     while (next_page_id != INVALID_PAGE_ID) {
@@ -103,6 +104,8 @@ class TableHeap {
    */
   inline page_id_t GetFirstPageId() const { return first_page_id_; }
 
+  bool GetNextTupleRid(const RowId &rid, RowId *nxt_rid, Txn *txn);
+
  private:
   /**
    * create table heap and initialize first page
@@ -113,7 +116,15 @@ class TableHeap {
         schema_(schema),
         log_manager_(log_manager),
         lock_manager_(lock_manager) {
-    ASSERT(false, "Not implemented yet.");
+           first_page_id_=INVALID_PAGE_ID;
+           Page *first_page=buffer_pool_manager_->NewPage(first_page_id_);
+           if(first_page==nullptr)
+           {
+            LOG(WARNING) << "Failed to create first page in tableheap initialization"<<std::endl;
+           }
+           TablePage *table_page=reinterpret_cast<TablePage *>(first_page);
+           table_page->Init(first_page_id_,INVALID_PAGE_ID, log_manager, txn);
+           buffer_pool_manager_->UnpinPage(first_page_id_, true);
   };
 
   explicit TableHeap(BufferPoolManager *buffer_pool_manager, page_id_t first_page_id, Schema *schema,

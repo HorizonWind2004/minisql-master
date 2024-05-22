@@ -1,7 +1,7 @@
-#include "record/types.h"
+#include "../include/record/types.h"
 
 #include "common/macros.h"
-#include "record/field.h"
+#include "../include/record/field.h"
 
 inline int CompareStrings(const char *str1, int len1, const char *str2, int len2) {
   assert(str1 != nullptr);

@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "common/macros.h"
-#include "common/rowid.h"
+#include "../common/macros.h"
+#include "../common/rowid.h"
 #include "record/field.h"
 #include "record/schema.h"
 
@@ -108,6 +108,7 @@ class Row {
   inline size_t GetFieldCount() const { return fields_.size(); }
 
  private:
+  static constexpr uint32_t ROW_MAGIC_NUM = 142857;
   RowId rid_{};
   std::vector<Field *> fields_; /** Make sure that all field ptr are destructed*/
 };

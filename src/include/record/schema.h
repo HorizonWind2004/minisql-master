@@ -2,8 +2,8 @@
 #include <iostream>
 #include <vector>
 
-#include "common/dberr.h"
-#include "common/macros.h"
+#include "../common/dberr.h"
+#include "../common/macros.h"
 #include "glog/logging.h"
 #include "record/column.h"
 
