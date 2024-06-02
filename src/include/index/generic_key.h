@@ -21,6 +21,7 @@ class KeyManager {
     // initialize to 0
     [[maybe_unused]] uint32_t size = key.GetSerializedSize(schema);
     ASSERT(key.GetFieldCount() == schema->GetColumnCount(), "field nums not match.");
+    // LOG(INFO) << size << " " << key_size_;
     ASSERT(size <= (uint32_t)key_size_, "Index key size exceed max key size.");
     memset(key_buf->data, 0, key_size_);
     key.SerializeTo(key_buf->data, schema);

@@ -5,35 +5,48 @@
  * done
  */
 bool TableHeap::InsertTuple(Row &row, Txn *txn) {
+  uint32_t serialized_size=row.GetSerializedSize(schema_);
+  if(serialized_size>=TablePage::SIZE_MAX_ROW)return 0;
   page_id_t cur_page_id=first_page_id_,prev_page_id=INVALID_PAGE_ID;
-  TablePage *page=nullptr;
-  while(cur_page_id!=INVALID_PAGE_ID)
+  TablePage *page=reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(cur_page_id));
+  if(page==nullptr)return 0;
+  page->WLatch();
+  bool p;
+  while(!(p=page->InsertTuple(row,schema_,txn,lock_manager_,log_manager_)))
   {
-    page=reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(cur_page_id));
-    if(!page)return 0;//failed to fetch page
-    page->RLatch();
-    if(page->GetFreeSpaceRemaining_public()>=row.GetSerializedSize(schema_))
-    {
-      page->RUnlatch();
-      break;
-    }
-    page->RUnlatch();
+    page->WUnlatch();
+    buffer_pool_manager_->UnpinPage(cur_page_id,0);
     prev_page_id=cur_page_id;
     cur_page_id=page->GetNextPageId();
-    buffer_pool_manager_->UnpinPage(prev_page_id,false);
+    // std::cout<<cur_page_id<<std::endl;
+    if(cur_page_id==INVALID_PAGE_ID)break;
+    page=reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(page->GetNextPageId()));
+    if(page==nullptr)break;
+    page->WLatch();
   }
-  //create a new page
-  if(cur_page_id==INVALID_PAGE_ID)
+  if(p)
   {
-    page=reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(cur_page_id));
-    if(!page)return 0;
-    page->Init(cur_page_id,prev_page_id,log_manager_,txn);
+    page->WUnlatch();
+    // std::cout<<cur_page_id<<std::endl;
+    buffer_pool_manager_->UnpinPage(cur_page_id,1);
+    return 1;
   }
+  // std::cout<<cur_page_id<<std::endl;
+  page=reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(cur_page_id));
+  // std::cout<<cur_page_id<<std::endl;
+  if(page==nullptr)return 0;
+  page->Init(cur_page_id,prev_page_id, log_manager_,txn);
   page->WLatch();
-  bool is_succeeded=page->InsertTuple(row, schema_, txn, lock_manager_, log_manager_);
+  page->InsertTuple(row,schema_,txn,lock_manager_,log_manager_);
   page->WUnlatch();
-  buffer_pool_manager_->UnpinPage(cur_page_id, is_succeeded);
-  return is_succeeded;
+  buffer_pool_manager_->UnpinPage(cur_page_id,1);
+
+  page=reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(prev_page_id));
+  page->WLatch();
+  page->SetNextPageId(cur_page_id);
+  page->WUnlatch();
+  buffer_pool_manager_->UnpinPage(prev_page_id,1);
+  return 1;
 }
 
 bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {

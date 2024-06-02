@@ -80,6 +80,7 @@ Page *BufferPoolManager::NewPage(page_id_t &page_id) {
   // 4.   Set the page ID output parameter. Return a pointer to P.
   if (free_list_.size() || replacer_->Size()) {
     int new_page_id = disk_manager_->AllocatePage();
+    //LOG(INFO) << "new_page_id: " << new_page_id << endl;
     if (new_page_id == INVALID_PAGE_ID) {
       return nullptr;
     }
