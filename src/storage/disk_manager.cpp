@@ -71,6 +71,7 @@ page_id_t DiskManager::AllocatePage() {
       if (bitmap_page_->AllocatePage(page_offset)) {
         meta_page->num_allocated_pages_++;
         meta_page->extent_used_page_[i]++;
+        WritePhysicalPage(META_PAGE_ID, meta_data_);
         WritePhysicalPage(bitmap_page_id, bitmap_page);
         return i * BITMAP_SIZE + page_offset;
       }
@@ -80,7 +81,6 @@ page_id_t DiskManager::AllocatePage() {
   }
   return INVALID_PAGE_ID;
 }
-
 
 /**
  * TODO: Student Implement
