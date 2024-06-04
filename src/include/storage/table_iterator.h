@@ -30,6 +30,26 @@ public:
 
   TableIterator operator++(int);
 
+  TableHeap* get_Table_Heap()
+  {
+    return table_heap_;
+  }
+
+  RowId get_Rid()
+  {
+    return rid_;
+  }
+
+  Txn* get_Txn()
+  {
+    return txn_;
+  }
+
+  Row* get_Row()
+  {
+    return cur_row_;
+  }
+
 private:
   TableHeap *table_heap_;
   RowId rid_;

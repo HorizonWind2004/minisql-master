@@ -65,9 +65,11 @@ class IndexInfo {
  */
   void Init(IndexMetadata *meta_data, TableInfo *table_info, BufferPoolManager *buffer_pool_manager) {
     // Step1: init index metadata and table info
+    this->meta_data_=meta_data;
     // Step2: mapping index key to key schema
+    this->key_schema_=Schema::ShallowCopySchema(table_info->GetSchema(),meta_data->GetKeyMapping());
     // Step3: call CreateIndex to create the index
-    ASSERT(false, "Not Implemented yet.");
+    this->index_=CreateIndex(buffer_pool_manager, "bptree");
   }
 
   inline Index *GetIndex() { return index_; }

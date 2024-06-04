@@ -1,11 +1,57 @@
+// #ifndef MINISQL_LRU_REPLACER_H
+// #define MINISQL_LRU_REPLACER_H
+
+// #include <list>
+// #include <mutex>
+// #include <unordered_set>
+// #include<unordered_map>
+// #include <vector>
+
+// #include "buffer/replacer.h"
+// #include "common/config.h"
+
+// using namespace std;
+
+// /**
+//  * LRUReplacer implements the Least Recently Used replacement policy.
+//  */
+// class LRUReplacer : public Replacer {
+//  public:
+//   /**
+//    * Create a new LRUReplacer.
+//    * @param num_pages the maximum number of pages the LRUReplacer will be required to store
+//    */
+//   explicit LRUReplacer(size_t num_pages);
+
+//   /**
+//    * Destroys the LRUReplacer.
+//    */
+//   ~LRUReplacer() override;
+
+//   bool Victim(frame_id_t *frame_id) override;
+
+//   void Pin(frame_id_t frame_id) override;
+
+//   void Unpin(frame_id_t frame_id) override;
+
+//   size_t Size() override;
+
+// private:
+//   size_t capacity_;
+//   std::list<frame_id_t> lru_list_;
+//   std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> lru_map_;
+// };
+
+// #endif  // MINISQL_LRU_REPLACER_H
 #ifndef MINISQL_LRU_REPLACER_H
 #define MINISQL_LRU_REPLACER_H
 
 #include <list>
 #include <mutex>
 #include <unordered_set>
-#include<unordered_map>
 #include <vector>
+#include <deque>
+#include <map>
 
 #include "buffer/replacer.h"
 #include "common/config.h"
@@ -37,9 +83,10 @@ class LRUReplacer : public Replacer {
   size_t Size() override;
 
 private:
-  size_t capacity_;
-  std::list<frame_id_t> lru_list_;
-  std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> lru_map_;
+  // add your own private member variables here
+  uint32_t page_capacity_;
+  deque<frame_id_t> page_list_;
+  map<frame_id_t, bool> page_map_;
 };
 
 #endif  // MINISQL_LRU_REPLACER_H
