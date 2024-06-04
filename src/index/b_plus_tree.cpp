@@ -34,17 +34,14 @@ BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager
       leaf_max_size_(leaf_max_size),
       internal_max_size_(internal_max_size) {
 
-	if (leaf_max_size == UNDEFINED_SIZE) {
-		leaf_max_size_ = (PAGE_SIZE - LEAF_PAGE_HEADER_SIZE) / (processor_.GetKeySize() + sizeof(RowId)) - 1;
-	}
-	if (internal_max_size == UNDEFINED_SIZE) {
-		internal_max_size_ = (PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) / (processor_.GetKeySize() + sizeof(page_id_t)) - 1;
-	}
+	if (leaf_max_size == UNDEFINED_SIZE) leaf_max_size_ = (PAGE_SIZE - LEAF_PAGE_HEADER_SIZE) / (processor_.GetKeySize() + sizeof(RowId)) - 1;
+	if (internal_max_size == UNDEFINED_SIZE) internal_max_size_ = (PAGE_SIZE - INTERNAL_PAGE_HEADER_SIZE) / (processor_.GetKeySize() + sizeof(page_id_t)) - 1;
 
-	auto page = buffer_pool_manager_->FetchPage(INDEX_ROOTS_PAGE_ID);
-	ASSERT(page != nullptr, "Index root page is nullptr.");
-	auto roots_page = reinterpret_cast<IndexRootsPage *>(page->GetData());
-	roots_page->GetRootId(index_id_, &root_page_id_);
+	
+  auto root_page = reinterpret_cast<IndexRootsPage *>(buffer_pool_manager_->FetchPage(INDEX_ROOTS_PAGE_ID)->GetData());
+  if(!root_page->GetRootId(index_id, &root_page_id_)) {
+    root_page_id_ = INVALID_PAGE_ID;
+  }
 	buffer_pool_manager_->UnpinPage(INDEX_ROOTS_PAGE_ID, false);
 }
 
