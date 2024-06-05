@@ -77,10 +77,13 @@ vector<RowId> IndexScanExecutor::IndexScan(AbstractExpressionRef predicate) {
 }
 
 bool IndexScanExecutor::Next(Row *row, RowId *rid) {
+
+    // std::cout<<"########"<<std::endl;
   auto predicate = plan_->GetPredicate();
   auto table_schema = table_info_->GetSchema();
   while (cursor_ < result_.size()) {
     auto p_row = new Row(result_[cursor_]);
+
     table_info_->GetTableHeap()->GetTuple(p_row, nullptr);
     if (plan_->need_filter_) {
       if (!predicate->Evaluate(p_row).CompareEquals(Field(kTypeInt, 1))) {

@@ -50,9 +50,12 @@ bool SeqScanExecutor::Next(Row *row, RowId *rid) {
   auto predicate = plan_->GetPredicate();
   auto table_schema = table_info_->GetSchema();
   while (iterator_ != table_info_->GetTableHeap()->End()) {
+  // std::cout<<111<<std::endl;
     auto p_row = &(*iterator_);
     if (predicate != nullptr) {
       if (!predicate->Evaluate(p_row).CompareEquals(Field(kTypeInt, 1))) {
+
+// std::cout<<222<<std::endl;
         iterator_++;
         continue;
       }
@@ -64,7 +67,11 @@ bool SeqScanExecutor::Next(Row *row, RowId *rid) {
       *row = *p_row;
     }
     iterator_++;
+
+// std::cout<<333<<std::endl;
     return true;
+
   }
+// std::cout<<444<<std::endl;
   return false;
 }

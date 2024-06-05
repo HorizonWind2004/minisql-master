@@ -12,6 +12,7 @@ void ValuesExecutor::Init() {
 }
 
 bool ValuesExecutor::Next(Row *row, RowId *rid) {
+  // std::cout<<111<<std::endl;
   if (cursor_ < value_size_) {
     std::vector<Field> values;
     auto exprs = plan_->GetValues().at(cursor_);
@@ -20,7 +21,9 @@ bool ValuesExecutor::Next(Row *row, RowId *rid) {
     }
     *row = Row{values};
     cursor_++;
+  // std::cout<<222<<std::endl;
     return true;
   }
+  // std::cout<<333<<std::endl;
   return false;
 }

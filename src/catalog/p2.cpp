@@ -233,10 +233,10 @@ dberr_t CatalogManager::CreateIndex(const std::string &table_name, const string 
   TableIterator new_table_iterator=table_info->GetTableHeap()->Begin(txn);
   while(new_table_iterator!=table_info->GetTableHeap()->End())
   {
-    // Row *now_row=new_table_iterator->;
+    Row *now_row=new_table_iterator.get_Row();
     Row key_row;
-    new_table_iterator->GetKeyFromRow(table_info->GetSchema(),index_info->GetIndexKeySchema(),key_row);
-    dberr_t Ins_message=index_info->GetIndex()->InsertEntry(key_row,new_table_iterator->GetRowId(),txn);
+    now_row->GetKeyFromRow(table_info->GetSchema(),index_info->GetIndexKeySchema(),key_row);
+    dberr_t Ins_message=index_info->GetIndex()->InsertEntry(key_row,new_table_iterator.get_Rid(),txn);
     if(Ins_message==DB_FAILED)return DB_FAILED;
     new_table_iterator++;
   }//向索引中插入数据

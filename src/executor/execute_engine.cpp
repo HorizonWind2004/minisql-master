@@ -86,11 +86,17 @@ dberr_t ExecuteEngine::ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<
     executor->Init();
     RowId rid{};
     Row row{};
+// std::cout<<111<<std::endl;
+    // std::cout<<"########"<<std::endl;
+// std::cout<<rid.GetPageId()<<std::endl;
+// std::cout<<row.GetRowId().GetPageId()<<std::endl;
     while (executor->Next(&row, &rid)) {
       if (result_set != nullptr) {
         result_set->push_back(row);
       }
+    // std::cout<<"########"<<std::endl;
     }
+
   } catch (const exception &ex) {
     std::cout << "Error Encountered in Executor Execution: " << ex.what() << std::endl;
     if (result_set != nullptr) {
@@ -98,6 +104,7 @@ dberr_t ExecuteEngine::ExecutePlan(const AbstractPlanNodeRef &plan, std::vector<
     }
     return DB_FAILED;
   }
+// std::cout<<222<<std::endl;
   return DB_SUCCESS;
 }
 

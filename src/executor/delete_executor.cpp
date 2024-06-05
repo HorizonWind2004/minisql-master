@@ -16,10 +16,15 @@ void DeleteExecutor::Init() {
 }
 
 bool DeleteExecutor::Next([[maybe_unused]] Row *row, RowId *rid) {
+  // std::cout<<111<<std::endl;
+  // std::cout<<rid->GetPageId()<<std::endl;
   if (child_executor_->Next(row, rid)) {
+    // std::cout<<rid->GetPageId()<<std::endl;
+  // std::cout<<222<<std::endl;
     if (!table_info_->GetTableHeap()->MarkDelete(*rid, txn_)) {
       return false;
     }
+
     Row key_row;
     for (auto info : index_info_) {  // 更新索引
       row->GetKeyFromRow(table_info_->GetSchema(), info->GetIndexKeySchema(), key_row);

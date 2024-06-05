@@ -71,7 +71,7 @@ class ExecutorTest : public ::testing::Test {
   ExecuteContext *GetExecutorContext() { return exec_ctx_.get(); }
 
   /** @return The execution engine for our test instance. */
-  ExecuteEngine *GetExecutionEngine() { return execution_engine_.get(); }
+  ExecuteEngine *GetExecutionEngine() {return execution_engine_.get(); }
 
   /** @return Get the recovery for our test instance. */
   Txn *GetTxn() { return txn_; }
