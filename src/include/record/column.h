@@ -28,6 +28,10 @@ class Column {
 
   bool IsUnique() const { return unique_; }
 
+  void SetIsNullable(bool nullable__) { nullable_ = nullable__; }
+
+  void SetIsUnique(bool unique__) { unique_ = unique__; }
+
   TypeId GetType() const { return type_; }
 
   uint32_t SerializeTo(char *buf) const;
