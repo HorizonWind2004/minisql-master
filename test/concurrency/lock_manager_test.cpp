@@ -276,7 +276,6 @@ TEST_F(LockManagerTest, DeadlockDetectionTest1) {
   Txn *t1 = txn_mgr_->Begin();
   auto cycle_detection_interval = std::chrono::milliseconds(500);
   lock_mgr_->EnableCycleDetection(cycle_detection_interval);
-
   auto w0 = [&]() {
     // execution flow 1
     bool res = lock_mgr_->LockExclusive(t0, r0);
@@ -313,7 +312,7 @@ TEST_F(LockManagerTest, DeadlockDetectionTest1) {
     ASSERT_EQ(TxnState::kAborted, t1->GetState());
     txn_mgr_->Abort(t1);  // locks will be released after deadlock detection
   };
-
+// std::cout<<111<<std::endl;
   // start deadlock detect worker
   std::thread detect_worker(std::bind(&LockManager::RunCycleDetection, lock_mgr_));
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -323,7 +322,9 @@ TEST_F(LockManagerTest, DeadlockDetectionTest1) {
 
   std::this_thread::sleep_for(cycle_detection_interval * 2);
 
+// std::cout<<111<<std::endl;
   i1.join();
+// std::cout<<111<<std::endl;
   i0.join();
 
   lock_mgr_->DisableCycleDetection();
