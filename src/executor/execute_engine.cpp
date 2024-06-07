@@ -443,13 +443,13 @@ dberr_t ExecuteEngine::ExecuteCreateTable(pSyntaxNode ast, ExecuteContext *conte
   int cnt = 0;
   for (auto i : unique_key) {
     auto *index = IndexInfo::Create();
-    auto err = context->GetCatalog()->CreateIndex(table_name, "unique_index_" + to_string(cnt++), {i}, nullptr, index, "bptree");
+    auto err = context->GetCatalog()->CreateIndex(table_name, table_name + "_unique_index_" + to_string(cnt++), {i}, nullptr, index, "bptree");
     if (err != DB_SUCCESS) {
       return err;
     }
   }
   auto *indexInfo = IndexInfo::Create();
-  err = context->GetCatalog()->CreateIndex(table_name, "primary_key_index", primary_key, nullptr, indexInfo, "bptree");
+  err = context->GetCatalog()->CreateIndex(table_name, table_name + "_primary_key_index_", primary_key, nullptr, indexInfo, "bptree");
   if (err != DB_SUCCESS) {
     return err;
   }
