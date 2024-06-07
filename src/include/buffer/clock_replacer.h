@@ -30,6 +30,8 @@ class CLOCKReplacer : public Replacer {
    */
   ~CLOCKReplacer() override;
 
+  void pushClock();
+
   bool Victim(frame_id_t *frame_id) override;
 
   void Pin(frame_id_t frame_id) override;
@@ -39,9 +41,10 @@ class CLOCKReplacer : public Replacer {
   size_t Size() override;
 
  private:
-  size_t capacity;
-  list<frame_id_t> clock_list;               // replacer中可以被替换的数据页
-  map<frame_id_t, frame_id_t> clock_status;  // 数据页的存储状态
+  size_t capacity_;
+  list<pair<frame_id_t, bool> > clock_list_; 
+  list<pair<frame_id_t, bool> >::iterator clock_pointer_;
+  map<frame_id_t, list<pair<frame_id_t, bool> >::iterator> clock_map_;
 };
 
 #endif  // MINISQL_CLOCK_REPLACER_H
