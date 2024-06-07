@@ -71,3 +71,57 @@ TEST_F(RecoveryManagerTest, RecoveryTest) {
   ASSERT_EQ(db["C"], 600);
   ASSERT_EQ(db.count("D"), 0);
 }
+
+TEST_F(RecoveryManagerTest, MyRecoveryTest) {
+  auto d0 = CreateBeginLog(0);                                // <T0 Start>
+  auto d1 = CreateBeginLog(1);                                // <T1 Start>
+  auto d2 = CreateUpdateLog(0, "X", 500, "X", 550);           // <T0, X, 500, 550>
+  auto d3 = CreateUpdateLog(1, "Y", 300, "Y", 350);           // <T1, Y, 300, 350>
+  auto d4 = CreateCommitLog(0);                               // <T0 Commit>
+  auto d5 = CreateUpdateLog(1, "X", 550, "X", 600);           // <T1, X, 550, 600>
+  auto d6 = CreateUpdateLog(1, "Z", 200, "Z", 250);           // <T1, Z, 200, 250>
+  auto d7 = CreateBeginLog(3);                                // <T3, Start>
+  ASSERT_EQ(INVALID_LSN, d0->prev_lsn_);
+  ASSERT_EQ(d0->lsn_, d2->prev_lsn_);
+  ASSERT_EQ(d2->lsn_, d4->prev_lsn_);
+  ASSERT_EQ(d3->lsn_, d5->prev_lsn_);
+  ASSERT_EQ(INVALID_LSN, d7->prev_lsn_);
+  
+  /*--------- CheckPoint ---------*/
+  CheckPoint checkpoint;
+  checkpoint.checkpoint_lsn_ = d5->lsn_;
+  checkpoint.AddActiveTxn(1, d5->lsn_);
+  checkpoint.AddActiveTxn(3, d7->lsn_);
+  checkpoint.AddData("X", 600);
+  checkpoint.AddData("Y", 350);
+  checkpoint.AddData("Z", 200);
+  /*--------- CheckPoint ---------*/
+
+  auto d8 = CreateBeginLog(2);                                // <T2 Start>
+  auto d9 = CreateUpdateLog(2, "W", 300, "W", 450);           // <T2, W, 300, 450>
+  auto d10 = CreateCommitLog(2);                              // <T2 Commit>
+  ASSERT_EQ(INVALID_LSN, d8->prev_lsn_);
+  ASSERT_EQ(d8->lsn_, d9->prev_lsn_);
+  ASSERT_EQ(d9->lsn_, d10->prev_lsn_);
+
+  std::vector<LogRecPtr> logs = {d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10};
+
+  RecoveryManager recovery_mgr;
+  recovery_mgr.Init(checkpoint);
+  for (const auto &log : logs) {
+    recovery_mgr.AppendLogRec(log);
+  }
+  auto &db = recovery_mgr.GetDatabase();
+
+  recovery_mgr.RedoPhase();
+  ASSERT_EQ(db["X"], 600); // Expected to remain unchanged as T1 is aborted.
+  ASSERT_EQ(db["Y"], 350); 
+  ASSERT_EQ(db["Z"], 250);
+  ASSERT_EQ(db["W"], 450); 
+
+  recovery_mgr.UndoPhase();
+  ASSERT_EQ(db["X"], 550); 
+  ASSERT_EQ(db["Y"], 300); 
+  ASSERT_EQ(db["Z"], 200);
+  ASSERT_EQ(db["W"], 450); 
+}

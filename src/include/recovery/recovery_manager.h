@@ -56,9 +56,6 @@ public:
             break;
           }
           case LogRecType::kUpdate: {
-            // if (data_.find(now_log.second->old_key_) == data_.end() || data_[now_log.second->old_key_] != now_log.second->old_val_) {
-            //   continue;
-            // }
             data_.erase(now_log.second->old_key_);
             data_[now_log.second->new_key_] = now_log.second->new_val_;
             break;
