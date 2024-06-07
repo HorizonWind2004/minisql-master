@@ -39,13 +39,13 @@ void BPlusTree::Destroy(page_id_t current_page_id) {
   }
   auto page = reinterpret_cast<BPlusTreePage *>(buffer_pool_manager_->FetchPage(current_page_id)->GetData());
   if (!page->IsLeafPage()) {
-    auto *inner = reinterpret_cast<InternalPage *>(page);
-    for (int i = page->GetSize() - 1; i >= 0; --i) {
-      Destroy(inner->ValueAt(i));
+    auto internal = reinterpret_cast<InternalPage *>(page);
+    for (int i = 0; i < internal->GetSize(); i++) {
+      Destroy(internal->ValueAt(i));
     }
   }
-  buffer_pool_manager_->DeletePage(page->GetPageId());
-  buffer_pool_manager_->UnpinPage(page->GetPageId(), false);
+  buffer_pool_manager_->DeletePage(current_page_id);
+  buffer_pool_manager_->UnpinPage(current_page_id, false);
 }
 
 
@@ -577,10 +577,12 @@ Page *BPlusTree::FindLeafPage(const GenericKey *key, page_id_t page_id, bool lef
 
 void BPlusTree::UpdateRootPageId(int insert_record) {
   auto root_page = reinterpret_cast<IndexRootsPage *>(buffer_pool_manager_->FetchPage(INDEX_ROOTS_PAGE_ID)->GetData());  // index_roots_page.h
-  if (insert_record) {
+  if (insert_record == 1) {
     root_page->Insert(index_id_, root_page_id_);
-  } else {
+  } else if (insert_record == 0) {
     root_page->Update(index_id_, root_page_id_);
+  } else if (insert_record == 2) {
+    root_page->Delete(index_id_);
   }
   buffer_pool_manager_->UnpinPage(INDEX_ROOTS_PAGE_ID, true);
 }
