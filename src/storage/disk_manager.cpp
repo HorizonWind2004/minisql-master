@@ -107,7 +107,7 @@
 //   int bitmap_page_id = 1 + (logical_page_id / BITMAP_SIZE) * (1 + BITMAP_SIZE);
 //   char bitmap_page[PAGE_SIZE];
 //   ReadPhysicalPage(bitmap_page_id, bitmap_page);
-//   BitmapPage<PAGE_SIZE>  *bitmap = reinterpret_cast<BitmapPage<PAGE_SIZE> *>(bitmap_page);
+//   BitmapPage<PAGE_SIZE> *bitmap = reinterpret_cast<BitmapPage<PAGE_SIZE> *>(bitmap_page);
 //   return bitmap->IsPageFree(logical_page_id % BITMAP_SIZE);
 // }
 

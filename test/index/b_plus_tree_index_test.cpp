@@ -38,7 +38,6 @@ TEST(BPlusTreeTests, BPlusTreeIndexSimpleTest) {
   }
   if (bpm_->IsPageFree(INDEX_ROOTS_PAGE_ID)) {
     if (bpm_->NewPage(id) == nullptr || id != INDEX_ROOTS_PAGE_ID) {
-      // std::cout<<id<<' '<<INDEX_ROOTS_PAGE_ID<<std::endl;
       throw logic_error("Failed to allocate header page.");
     }
   }
@@ -74,5 +73,8 @@ TEST(BPlusTreeTests, BPlusTreeIndexSimpleTest) {
     ASSERT_EQ(i, (*iter).second.GetSlotNum());
     i++;
   }
+  index->Destroy();
   delete index;
+  delete bpm_;
+  delete disk_mgr_;
 }
