@@ -1,0 +1,21 @@
+<center><h1>MiniSQL 个人报告</h1></center>
+
+<center>谢集，3220103501</center>
+
+## 1. 负责部分
+
+- Lab1 的全部模块实现和测试以及 bonus 「Clock Replacer」 的编写。
+
+- Lab3 的辅助 Debug。
+
+- Lab4 的辅助 Debug。
+
+- Lab5 的全部模块实现和测试。
+
+- Lab6 的全部模块实现和测试。
+
+## 2. 个人报告
+
+### 2.1 Lab1
+
+#### 2.1.1 bitmap_page

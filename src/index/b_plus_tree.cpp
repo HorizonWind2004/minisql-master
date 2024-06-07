@@ -10,22 +10,6 @@
 /**
  * TODO: Student Implement
  */
-// BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager, const KeyManager &KM,
-//                      int leaf_max_size, int internal_max_size)
-//     : index_id_(index_id),
-//       buffer_pool_manager_(buffer_pool_manager),
-//       processor_(KM),
-//       leaf_max_size_(leaf_max_size),
-//       internal_max_size_(internal_max_size) {
-
-//       leaf_max_size_ = (4096 - 32)/(processor_.GetKeySize() + sizeof(RowId)) - 1;
-//       //leaf_max_size_ = 10;
-
-//       LOG(WARNING) << "leaf_max_size_ = " << leaf_max_size_ << std::endl;
-//       internal_max_size_ =  leaf_max_size_;
-//       LOG(INFO) << "BPlusTree() Constructor called leaf_max_size_ = " << leaf_max_size_ << " internal_max_size_ = " << internal_max_size_ << std::endl;
-      
-// }
 BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager, const KeyManager &KM,
                      int leaf_max_size, int internal_max_size)
     : index_id_(index_id),
@@ -39,14 +23,30 @@ BPlusTree::BPlusTree(index_id_t index_id, BufferPoolManager *buffer_pool_manager
 
 	
   auto root_page = reinterpret_cast<IndexRootsPage *>(buffer_pool_manager_->FetchPage(INDEX_ROOTS_PAGE_ID)->GetData());
-  if(!root_page->GetRootId(index_id, &root_page_id_)) {
+  if (!root_page->GetRootId(index_id, &root_page_id_)) {
     root_page_id_ = INVALID_PAGE_ID;
   }
 	buffer_pool_manager_->UnpinPage(INDEX_ROOTS_PAGE_ID, false);
 }
 
 
-void BPlusTree::Destroy(page_id_t current_page_id) {}
+void BPlusTree::Destroy(page_id_t current_page_id) {  
+  if (IsEmpty()) return;
+  if (current_page_id == INVALID_PAGE_ID) {
+    current_page_id = root_page_id_;
+    root_page_id_ = INVALID_PAGE_ID;
+    UpdateRootPageId(2);
+  }
+  auto page = reinterpret_cast<BPlusTreePage *>(buffer_pool_manager_->FetchPage(current_page_id)->GetData());
+  if (!page->IsLeafPage()) {
+    auto *inner = reinterpret_cast<InternalPage *>(page);
+    for (int i = page->GetSize() - 1; i >= 0; --i) {
+      Destroy(inner->ValueAt(i));
+    }
+  }
+  buffer_pool_manager_->DeletePage(page->GetPageId());
+  buffer_pool_manager_->UnpinPage(page->GetPageId(), false);
+}
 
 
 /*
