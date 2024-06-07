@@ -71,6 +71,7 @@ page_id_t DiskManager::AllocatePage() {
       if (bitmap_page_->AllocatePage(page_offset)) {
         meta_page->num_allocated_pages_++;
         meta_page->extent_used_page_[i]++;
+        WritePhysicalPage(META_PAGE_ID, meta_data_);
         WritePhysicalPage(bitmap_page_id, bitmap_page);
         return i * BITMAP_SIZE + page_offset;
       }
@@ -95,6 +96,7 @@ void DiskManager::DeAllocatePage(page_id_t logical_page_id) {
   if (reinterpret_cast<BitmapPage<PAGE_SIZE> *>(bitmap_page)->DeAllocatePage(page_offset)) {
     meta_page->num_allocated_pages_--;
     meta_page->extent_used_page_[extent_id]--;
+    WritePhysicalPage(META_PAGE_ID, meta_data_);
     WritePhysicalPage(bitmap_page_id, bitmap_page);
   }
 }

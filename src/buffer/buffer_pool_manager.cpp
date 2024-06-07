@@ -64,7 +64,7 @@ Page *BufferPoolManager::FetchPage(page_id_t page_id) {
       page_table_[page_id] = frame_id;
       pages_[frame_id].page_id_ = page_id;
       pages_[frame_id].ResetMemory();
-	  pages_[frame_id].is_dirty_ = false;
+	    pages_[frame_id].is_dirty_ = false;
       pages_[frame_id].pin_count_ = 1;
       disk_manager_->ReadPage(page_id, pages_[frame_id].GetData());
       return &pages_[frame_id];
@@ -96,7 +96,7 @@ Page *BufferPoolManager::NewPage(page_id_t &page_id) {
       pages_[frame_id].page_id_ = new_page_id;
       page_table_[new_page_id] = frame_id;
       pages_[frame_id].ResetMemory();
-	  pages_[frame_id].is_dirty_ = true;
+	    pages_[frame_id].is_dirty_ = true;
       pages_[frame_id].pin_count_ = 1;
       return &pages_[frame_id];
     } else {
@@ -110,7 +110,7 @@ Page *BufferPoolManager::NewPage(page_id_t &page_id) {
       pages_[frame_id].page_id_ = new_page_id;
       page_table_[new_page_id] = frame_id;
       pages_[frame_id].ResetMemory();
-	  pages_[frame_id].is_dirty_ = true;
+	    pages_[frame_id].is_dirty_ = true;
       pages_[frame_id].pin_count_ = 1;
       return &pages_[frame_id];
     }
