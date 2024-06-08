@@ -35,9 +35,7 @@ Column::Column(const Column *other)
       nullable_(other->nullable_),
       unique_(other->unique_) {}
 
-/**
-* TODO: Student Implement
-*/
+
 uint32_t Column::SerializeTo(char *buf) const {
   uint32_t bytes_written=0;
   //write magic number
@@ -73,28 +71,20 @@ uint32_t Column::SerializeTo(char *buf) const {
   //write unique
   MACH_WRITE_TO(bool, buf+bytes_written, unique_);
   bytes_written+=sizeof(bool);
-  // std::cout<<"ser"<<' '<<bytes_written<<std::endl;
   return bytes_written;
 }
 
-/**
- * TODO: Student Implement
- */
 uint32_t Column::GetSerializedSize() const {
   uint32_t written_bytes;
   written_bytes=sizeof(uint32_t) + sizeof(uint32_t)+name_.length() + sizeof(TypeId) + ((type_==kTypeChar)?sizeof(uint32_t):0) + sizeof(uint32_t) + sizeof(bool) + sizeof(bool);
-  // std::cout<<"getser"<<' '<<written_bytes<<std::endl;
   return written_bytes;
 }
 
-/**
- * TODO: Student Implement
- */
 uint32_t Column::DeserializeFrom(char *buf, Column *&column) {
-  //  if (column != nullptr) {
-  //   LOG(WARNING) << "Pointer to column is not null in column deserialize."<<std::endl;
-  //   return 0;
-  // }
+   if (column != nullptr) {
+    LOG(WARNING) << "Pointer to column is not null in column deserialize."<<std::endl;
+    return 0;
+  }
 
   uint32_t bytes_read=0;
 

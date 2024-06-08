@@ -74,6 +74,7 @@ bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {
  * done
  */
 bool TableHeap::UpdateTuple(Row &row, const RowId &rid, Txn *txn) {
+  row.SetRowId(rid);
   auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(rid.GetPageId()));
   if(!page)return 0;
   Row old_row(rid);

@@ -1,15 +1,11 @@
 #include "../include/record/row.h"
 
-/**
- * TODO: Student Implement
- */
+
 uint32_t Row::SerializeTo(char *buf, Schema *schema) const {
   ASSERT(schema != nullptr, "Invalid schema before serialize.");
   ASSERT(schema->GetColumnCount() == fields_.size(), "Fields size do not match schema's column size.");
 
   uint32_t bytes_written=0;
-
-
 
   uint32_t field_count=GetFieldCount();
 
@@ -43,8 +39,6 @@ uint32_t Row::DeserializeFrom(char *buf, Schema *schema) {
   ASSERT(fields_.empty(), "Non empty field in row.");
 
   uint32_t bytes_read=0;
-
-
 
   uint32_t field_count=schema->GetColumnCount();
 

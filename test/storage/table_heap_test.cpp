@@ -25,6 +25,9 @@ TEST(TableHeapTest, TableHeapSampleTest) {
   auto schema = std::make_shared<Schema>(columns);
   // create rows
   std::unordered_map<int64_t, Fields *> row_values;
+  
+  RowId row_ids[row_nums];
+
   uint32_t size = 0;
   TableHeap *table_heap = TableHeap::Create(bpm_, schema.get(), nullptr, nullptr, nullptr);
   for (int i = 0; i < row_nums; i++) {
@@ -41,6 +44,7 @@ TEST(TableHeapTest, TableHeapSampleTest) {
       ASSERT_TRUE(false);
     } else {
       row_values.emplace(row.GetRowId().Get(), fields);
+      row_ids[i]=row.GetRowId();
       size++;
     }
     delete[] characters;
@@ -48,6 +52,8 @@ TEST(TableHeapTest, TableHeapSampleTest) {
 
   ASSERT_EQ(row_nums, row_values.size());
   ASSERT_EQ(row_nums, size);
+
+  std::unordered_map<int64_t, Fields *> row_values2;
   for (auto row_kv : row_values) {
     size--;
     Row row(RowId(row_kv.first));
@@ -60,4 +66,38 @@ TEST(TableHeapTest, TableHeapSampleTest) {
     delete row_kv.second;
   }
   ASSERT_EQ(size, 0);
+
+  int count=0;
+  for(int i=0;i<row_nums;++i)
+  {
+    int32_t len = RandomUtils::RandomInt(0, 64);
+    char *characters = new char[len];
+    RandomUtils::RandomString(characters, len);
+    Fields *fields =
+        new Fields{Field(TypeId::kTypeInt, i), Field(TypeId::kTypeChar, const_cast<char *>(characters), len, true),
+                   Field(TypeId::kTypeFloat, RandomUtils::RandomFloat(-999.f, 999.f))};
+    Row row(*fields);
+    ASSERT_EQ(true, table_heap->UpdateTuple(row,row_ids[i],nullptr));
+    ASSERT_EQ(false, row.GetRowId().GetPageId()==INVALID_PAGE_ID);
+    row_values2.emplace(row.GetRowId().Get(),fields);
+    delete[] characters;
+    ++count;
+  }
+  ASSERT_EQ(true, count==row_nums);
+
+  for(auto row_kv:row_values2)
+  {
+    Row row(RowId(row_kv.first));
+    table_heap->GetTuple(&row, nullptr);
+    ASSERT_EQ(schema.get()->GetColumnCount(), row.GetFields().size());
+    for (size_t j = 0; j < schema.get()->GetColumnCount(); j++) {
+      // std::cout<<row.GetField(j)->GetData()<<std::endl;
+      // std::cout<<row_kv.second->at(j).GetData()<<std::endl;
+      ASSERT_EQ(CmpBool::kTrue, row.GetField(j)->CompareEquals(row_kv.second->at(j)));
+    }
+    table_heap->ApplyDelete(row.GetRowId(),nullptr);
+    ASSERT_EQ(false, table_heap->GetTuple(&row, nullptr));
+    count--;
+  }
+  ASSERT_EQ(0,count);
 }

@@ -1,8 +1,6 @@
 #include "../include/record/schema.h"
 
-/**
- * TODO: Student Implement
- */
+
 uint32_t Schema::SerializeTo(char *buf) const {
   uint32_t bytes_written=0;
 
@@ -18,15 +16,12 @@ uint32_t Schema::SerializeTo(char *buf) const {
   //write columns
   for(const auto column:columns_)
   {
-
-  // std::cout<<"ser"<<bytes_written<<std::endl;
     bytes_written+=column->SerializeTo(buf+bytes_written);
   }
   
   //write is_manage_
   MACH_WRITE_TO(bool, buf+bytes_written, is_manage_);
   bytes_written+=sizeof(bool);
-  // std::cout<<"ser"<<bytes_written<<std::endl;
   return bytes_written;
 }
 
@@ -40,21 +35,19 @@ uint32_t Schema::GetSerializedSize() const {
   for(const auto column:columns_)
   {
 
-  // std::cout<<"getser"<<written_size<<std::endl;
     written_size+=column->GetSerializedSize();
   }
 
   written_size+=sizeof(bool);
 
-  // std::cout<<"getser"<<written_size<<std::endl;
   return written_size;
 }
 
 uint32_t Schema::DeserializeFrom(char *buf, Schema *&schema) {
-  // if (schema != nullptr) {
-  //   LOG(WARNING) << "Pointer to schema is not null in schema deserialize."<<std::endl;
-  //   return 0;
-  // }
+  if (schema != nullptr) {
+    LOG(WARNING) << "Pointer to schema is not null in schema deserialize."<<std::endl;
+    return 0;
+  }
 
   uint32_t bytes_read=0;
 
