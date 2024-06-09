@@ -293,6 +293,20 @@ dberr_t CatalogManager::DropIndex(const string &table_name, const string &index_
   auto it=index_names_.at(table_name).find(index_name);
   if(it==index_names_.at(table_name).end())return DB_INDEX_NOT_FOUND;
   index_id_t now_index_id=it->second;
+
+  IndexInfo *index_info=indexes_[now_index_id];
+  TableInfo *table_info=tables_[table_names_[table_name]];
+
+  TableIterator new_table_iterator=table_info->GetTableHeap()->Begin(nullptr);
+  while(new_table_iterator!=table_info->GetTableHeap()->End())
+  {
+    Row key_row;
+    new_table_iterator->GetKeyFromRow(table_info->GetSchema(),index_info->GetIndexKeySchema(),key_row);
+    dberr_t Ins_message=index_info->GetIndex()->RemoveEntry(key_row,new_table_iterator->GetRowId(),nullptr);
+    if(Ins_message==DB_FAILED)return DB_FAILED;
+    new_table_iterator++;
+  }//向索引中删除数据
+
   page_id_t now_page_id=catalog_meta_->index_meta_pages_[now_index_id];
   buffer_pool_manager_->DeletePage(now_page_id);
   catalog_meta_->index_meta_pages_.erase(now_index_id);
