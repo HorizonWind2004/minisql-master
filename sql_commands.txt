@@ -5,7 +5,7 @@ use db0;
 
 create table account(
   id int, 
-  name char(16) unique, 
+  name char(16), 
   balance float, 
   primary key(id)
 );
