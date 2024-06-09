@@ -3,8 +3,6 @@
 void CatalogMeta::SerializeTo(char *buf) const {
   ASSERT(GetSerializedSize() <= PAGE_SIZE, "Failed to serialize catalog metadata to disk.");
   MACH_WRITE_UINT32(buf, CATALOG_METADATA_MAGIC_NUM);
-  // std::cout<<"222"<<CATALOG_METADATA_MAGIC_NUM<<std::endl;
-  // printf("%p\n",buf);
   buf += 4;
   MACH_WRITE_UINT32(buf, table_meta_pages_.size());
   buf += 4;
@@ -90,11 +88,8 @@ CatalogManager::CatalogManager(BufferPoolManager *buffer_pool_manager, LockManag
       }
       else
       {
-        // std::cout<<111<<std::endl;
         Page *metapage=buffer_pool_manager_->FetchPage(CATALOG_META_PAGE_ID);
-        // printf("FetchPage for CATALOG_META_PAGE_ID is %p\n",metapage);
         char* buf=metapage->GetData();
-        // printf("Deserialize from %p\n",buf);
         catalog_meta_=CatalogMeta::DeserializeFrom(buf);
         buffer_pool_manager_->UnpinPage(CATALOG_META_PAGE_ID,false);
         for(auto iter : catalog_meta_->table_meta_pages_)
@@ -145,7 +140,6 @@ CatalogManager::~CatalogManager() {
 dberr_t CatalogManager::CreateTable(const string &table_name, TableSchema *schema, Txn *txn, TableInfo *&table_info) {
   if(table_names_.find(table_name)!=table_names_.end())
   {
-    // std::cout<<1<<std::endl;
     return DB_TABLE_ALREADY_EXIST;
   }
   table_id_t new_table_id=catalog_meta_->GetNextTableId();
@@ -222,7 +216,6 @@ dberr_t CatalogManager::CreateIndex(const std::string &table_name, const string 
 
   page_id_t new_page_id;
   Page *new_index_page=buffer_pool_manager_->NewPage(new_page_id);
-  // std::cout<<new_page_id<<std::endl;
   char *buf=new_index_page->GetData();
   catalog_meta_->index_meta_pages_[new_index_id]=new_page_id;
 
@@ -233,7 +226,6 @@ dberr_t CatalogManager::CreateIndex(const std::string &table_name, const string 
   TableIterator new_table_iterator=table_info->GetTableHeap()->Begin(txn);
   while(new_table_iterator!=table_info->GetTableHeap()->End())
   {
-    // Row *now_row=new_table_iterator->;
     Row key_row;
     new_table_iterator->GetKeyFromRow(table_info->GetSchema(),index_info->GetIndexKeySchema(),key_row);
     dberr_t Ins_message=index_info->GetIndex()->InsertEntry(key_row,new_table_iterator->GetRowId(),txn);
@@ -316,8 +308,6 @@ dberr_t CatalogManager::FlushCatalogMetaPage() const {
   Page* meta_page=buffer_pool_manager_->FetchPage(CATALOG_META_PAGE_ID);
   if(meta_page==nullptr)return DB_FAILED;
   char *buf=meta_page->GetData();
-  // printf("FetchPage for CATALOG_META_PAGE_ID is%p\n",meta_page);
-  // printf("Serialize to %p\n",buf);
   catalog_meta_->SerializeTo(buf);
   buffer_pool_manager_->FlushPage(CATALOG_META_PAGE_ID);
   buffer_pool_manager_->UnpinPage(CATALOG_META_PAGE_ID,false);
@@ -362,11 +352,3 @@ dberr_t CatalogManager::LoadIndex(const index_id_t index_id, const page_id_t pag
   return DB_SUCCESS;
 }
 
-/**
- * TODO: Student Implement
- */
-dberr_t CatalogManager::GetTable(const table_id_t table_id, TableInfo *&table_info) {
-  if(tables_.find(table_id)==tables_.end())return DB_TABLE_NOT_EXIST;
-  table_info=tables_[table_id];
-  return DB_SUCCESS;
-}
