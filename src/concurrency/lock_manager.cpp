@@ -16,7 +16,6 @@ bool LockManager::LockShared(Txn *txn, const RowId &rid) {
   std::unique_lock<std::mutex>lock(latch_);//防止并发访问
   if(txn->GetIsolationLevel()==IsolationLevel::kReadUncommitted)//ReadUncommitted的level不加锁
   {
-    // std::cout<<111<<std::endl;
     txn->SetState(TxnState::kAborted);
     throw TxnAbortException(txn->GetTxnId(),AbortReason::kLockSharedOnReadUncommitted);
   }
@@ -30,7 +29,6 @@ bool LockManager::LockShared(Txn *txn, const RowId &rid) {
     now_queue.cv_.wait(lock, [&now_queue, txn]{return !now_queue.is_writing_ || txn->GetState()==TxnState::kAborted;});
   }
 
-  // std::cout<<333<<std::endl;
   CheckAbort(txn,now_queue);
 
   txn->GetSharedLockSet().insert(rid);
@@ -38,7 +36,6 @@ bool LockManager::LockShared(Txn *txn, const RowId &rid) {
   now_queue.GetLockRequestIter(txn->GetTxnId())->granted_=LockMode::kShared;//实际分配share锁
 
   return true;
-  // return false;
 }
 
 /**
@@ -56,7 +53,6 @@ bool LockManager::LockExclusive(Txn *txn, const RowId &rid) {
     {
       now_queue.cv_.wait(lock,[&now_queue, txn]{return txn->GetState()==TxnState::kAborted||(!now_queue.is_writing_&&now_queue.sharing_cnt_==0);});
     }
-  // std::cout<<333<<std::endl;
     CheckAbort(txn, now_queue);
 
     txn->GetExclusiveLockSet().insert(rid);
@@ -64,7 +60,6 @@ bool LockManager::LockExclusive(Txn *txn, const RowId &rid) {
     now_queue.GetLockRequestIter(txn->GetTxnId())->granted_=LockMode::kExclusive;
 
     return true;
-    // return false;
 }
 
 /**
@@ -86,7 +81,7 @@ bool LockManager::LockUpgrade(Txn *txn, const RowId &rid) {
 
     if(iter->lock_mode_==LockMode::kExclusive&&iter->granted_==LockMode::kExclusive)return true;//already grant Exclusive
 
-    iter->lock_mode_=LockMode::kExclusive;////////////////////change granted_?
+    iter->lock_mode_=LockMode::kExclusive;
 
     if(now_queue.is_writing_||now_queue.sharing_cnt_>1)
     {
@@ -104,9 +99,7 @@ bool LockManager::LockUpgrade(Txn *txn, const RowId &rid) {
     txn->GetSharedLockSet().erase(rid);
     txn->GetExclusiveLockSet().insert(rid);
 
-
     return true;
-    // return false;
 }
 
 /**
@@ -163,7 +156,6 @@ void LockManager::LockPrepare(Txn *txn, const RowId &rid) {//rid加入lock_table
 void LockManager::CheckAbort(Txn *txn, LockManager::LockRequestQueue &req_queue) {
   if(txn->GetState()==TxnState::kAborted)
   {
-    // std::cout<<333<<std::endl;
     req_queue.EraseLockRequest(txn->GetTxnId());
     throw TxnAbortException(txn->GetTxnId(),AbortReason::kDeadlock);//等待资源时终止，为死锁检测
   }
@@ -235,14 +227,29 @@ bool LockManager::dfs(txn_id_t now)
   visited_path_.pop();
 
   return false;
-
 }
 
 void LockManager::DeleteNode(txn_id_t txn_id) {
     waits_for_.erase(txn_id);
-    // std::cout<<txn_id<<std::endl;
     auto *txn = txn_mgr_->GetTransaction(txn_id);
 
+    for(auto &iter:lock_table_)
+    {
+      for(auto &u:iter.second.req_list_)
+      {
+        if(u.txn_id_==txn_id&&u.granted_==LockMode::kNone)
+        {
+          for(auto &v:iter.second.req_list_)
+          {
+            if(v.granted_!=LockMode::kNone)
+            {
+              RemoveEdge(u.txn_id_,v.txn_id_);
+            }
+          }
+        }
+      }
+    }
+    
     for (auto &row_id: txn->GetSharedLockSet()) {
         for (auto &lock_req: lock_table_[row_id].req_list_) {
             if (lock_req.granted_ == LockMode::kNone) {
@@ -255,7 +262,6 @@ void LockManager::DeleteNode(txn_id_t txn_id) {
         for (auto &lock_req: lock_table_[row_id].req_list_) {
             if (lock_req.granted_ == LockMode::kNone) {
                 RemoveEdge(lock_req.txn_id_, txn_id);
-                // std::cout<<lock_req.txn_id_<<' '<<txn_id<<std::endl;
             }
         }
     }
