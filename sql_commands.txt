@@ -1,0 +1,36 @@
+create database db0;
+create database db1;
+create database db2;
+use db0;
+
+create table account(
+  id int, 
+  name char(16) unique, 
+  balance float, 
+  primary key(id)
+);
+
+execfile "../sql_gen/account00.txt";
+execfile "../sql_gen/account01.txt";
+execfile "../sql_gen/account02.txt";
+execfile "../sql_gen/account03.txt";
+execfile "../sql_gen/account04.txt";
+execfile "../sql_gen/account05.txt";
+execfile "../sql_gen/account06.txt";
+execfile "../sql_gen/account07.txt";
+execfile "../sql_gen/account08.txt";
+execfile "../sql_gen/account09.txt";
+
+select * from account;
+
+select * from account where id = ?
+select * from account where balance = ?
+select * from account where name = "name56789";
+select * from account where id <> ?
+select * from account where balance <> ?
+select * from account where name <> ?
+
+select id, name from account where balance >= ? and balance < ?
+select name, balance from account where balance > ? and id <= ?
+select * from account where id < 12515000 and name > "name14500";
+select * from account where id < 12500200 and name < "name00100";
