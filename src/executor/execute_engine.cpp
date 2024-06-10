@@ -607,11 +607,14 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
 #ifdef ENABLE_EXECUTE_DEBUG
   LOG(INFO) << "ExecuteExecfile" << std::endl;
 #endif
+  
+  auto start_time = std::chrono::system_clock::now();
   FILE* file = fopen(ast->child_->val_, "r");
   if (file == nullptr) {
     cout << "File " << ast->child_->val_ << " not found!" << endl;
     return DB_FAILED;
   }
+  string db_name = ast->child_->val_;
   char input[1024];
   while (!feof(file)) {
     memset(input, 0, 1024);
@@ -648,6 +651,9 @@ dberr_t ExecuteEngine::ExecuteExecfile(pSyntaxNode ast, ExecuteContext *context)
 
     ExecuteInformation(result);
   }
+  auto stop_time = std::chrono::system_clock::now();
+  double time = double((std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time)).count());
+  std::cout << "Execfile \"" << db_name << "\" finished" << "(" << fixed << setprecision(4) << time / 1000 << " sec)." << std::endl;
   return DB_SUCCESS;
 }
 
